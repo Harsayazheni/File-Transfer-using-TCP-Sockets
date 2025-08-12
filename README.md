@@ -24,87 +24,65 @@ PROGRAM:
 
 CLIENT:
 
+```
 import socket
 
 s = socket.socket()
 
 host = socket.gethostname()
-
 port = 60000
 
 s.connect((host, port))
-
 s.send("Hello server!".encode())
 
 with open('received_file', 'wb') as f:
+    while True:
+        print('Receiving data...')
+        data = s.recv(1024)
+        print('data=%s' % data)
+        if not data:
+            break
+        f.write(data)
 
-while True:
-
-print('receiving data...')
-
-data = s.recv(1024)
-
-print('data=%s', (data))
-
-if not data:
-
-break
-
-f.write(data)
-
-f.close()
-
-print('Successfully get the file')
-
+print('Successfully got the file')
 s.close()
+print('Connection closed')
 
-print('connection closed')
-
+```
 SERVER:
 
+```
 import socket 
 
-port = 60000 
-
+port = 60000
 s = socket.socket() 
-
 host = socket.gethostname() 
 
 s.bind((host, port)) 
+s.listen(5)
 
-REG NO:
-
-s.listen(5) 
+print(f"Server listening on {host}:{port}...")
 
 while True:
+    conn, addr = s.accept()
+    print(f"Got connection from {addr}")
 
-conn, addr = s.accept() 
+    data = conn.recv(1024)
+    print('Server received:', repr(data))
 
-data = conn.recv(1024)
+    filename = 'mytext.txt'  # File to send
+    with open(filename, 'rb') as f:
+        l = f.read(1024)
+        while l:
+            conn.send(l)
+            print('Sent', repr(l))
+            l = f.read(1024)
 
-print('Server received', repr(data))
+    print('Done sending file')
+    conn.send('Thank you for connecting'.encode())
+    conn.close()
 
-filename='mytext.txt'
-
-f = open(filename,'rb')
-
-l = f.read(1024)
-
-while (l):
-
-conn.send(l)
-
-print('Sent ',repr(l))
-
-l = f.read(1024)
-
-f.close()
-
-print('Done sending')
-
-conn.send('Thank you for connecting'.encode())
-
-conn.close()
+```
 
 OUTPUT:
 
